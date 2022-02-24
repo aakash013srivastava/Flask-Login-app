@@ -1,18 +1,74 @@
-from flask import Flask
-
+from enum import unique
+from flask import Flask,render_template,request,redirect,url_for
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///demoProject.db"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-@app.route("/")
+class Demo(db.Model):
+    # sno = db.Column(db.Integer,primary_key=True)
+    email = db.Column(db.String(200),unique = True,primary_key=True)
+    password = db.Column(db.String(200),nullable = False)
+    date_created = db.Column(db.DateTime,default=datetime.utcnow)
+
+    def __repr__(self)->str:
+        return f"{self.email}-{self.password}"
+
+
+@app.route("/",methods=['GET','POST'])
 def hello_world():
-    return "<p>Welcome Page !</p>"
+    allRegistered = Demo.query.all()
+    print(allRegistered)
+    #return render_template("index.html",allRegistered = allRegistered)
+    if request.method == "POST":
+        
+        # sno = len(allRegistered)+1
+        email = request.form['Email1']
+        pwd = request.form['password']
 
-@app.route("/register")
-def register():
-    return "<p>Register Page !</p>"
+        # for x in allRegistered:
+        #     if email == x.email:
+        #         return render_template("index.html",allRegistered = allRegistered,msg="Email already exists")
+        #     else:
+        try:
+            demo = Demo(email = email,password=pwd)
+            db.session.add(demo)
+            db.session.commit()
+            msg = 'Email registered successfully'
+            return render_template("index.html",allRegistered = allRegistered,msg=msg)
+        except SQLAlchemy.exc.IntegrityError:
+            msg = "Email already exists"
+            return render_template("index.html",allRegistered = allRegistered,msg=msg)
+    else:
+        return render_template("index.html",allRegistered = allRegistered)
+    return render_template("index.html")
+    # "<p>Welcome Page !</p>"
 
-@app.route("/login")
+@app.route("/login",methods=['GET','POST'])
 def login():
-    return "<p>Login Page !</p>"
+    allRegistered = Demo.query.all()
+    print(allRegistered)
+    
+    if request.method == "POST":
+        email = request.form['Email1']
+        pwd = request.form['password']
 
+        for x in allRegistered:
+            print((x.email))
+            print((x.password))
+            if x.email == email and x.password == pwd:
+                return render_template("index.html",allRegistered = allRegistered,loggedIn=True)
+            else:
+                continue
+                # return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+    return render_template("index.html")
+
+@app.route("/logout",methods=['GET'])
+def logout():
+    allRegistered = Demo.query.all()
+    return redirect('/')
+    return render_template("index.html",allRegistered = allRegistered,loggedIn=False,msg='Logged Out')
 if __name__ == "__main__":
     app.run(debug=True,port=8000)
