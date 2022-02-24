@@ -1,6 +1,7 @@
 from enum import unique
 from flask import Flask,render_template,request,redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 from datetime import datetime
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///demoProject.db"
@@ -37,13 +38,15 @@ def hello_world():
             db.session.add(demo)
             db.session.commit()
             msg = 'Email registered successfully'
-            return render_template("index.html",allRegistered = allRegistered,msg=msg)
-        except SQLAlchemy.exc.IntegrityError:
+            return redirect('/login')
+            return render_template("login.html",allRegistered = allRegistered,msg=msg)
+        except exc.IntegrityError:
+            db.session.rollback()
             msg = "Email already exists"
             return render_template("index.html",allRegistered = allRegistered,msg=msg)
     else:
         return render_template("index.html",allRegistered = allRegistered)
-    return render_template("index.html")
+    
     # "<p>Welcome Page !</p>"
 
 @app.route("/login",methods=['GET','POST'])
@@ -54,16 +57,22 @@ def login():
     if request.method == "POST":
         email = request.form['Email1']
         pwd = request.form['password']
-
+        match = None
         for x in allRegistered:
             print((x.email))
             print((x.password))
             if x.email == email and x.password == pwd:
                 return render_template("index.html",allRegistered = allRegistered,loggedIn=True)
+                match = "Done"
+
             else:
-                continue
-                # return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
-    return render_template("index.html")
+                match = None
+            # return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+
+            if match == None:
+                return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+    else:
+        return render_template("login.html",allRegistered = allRegistered,loggedIn=True)
 
 @app.route("/logout",methods=['GET'])
 def logout():

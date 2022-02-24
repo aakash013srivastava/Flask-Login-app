@@ -31,7 +31,11 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <li><a class="dropdown-item" href="/">Register</a></li>
+                  {% if not loggedIn %}
                   <li><a class="dropdown-item" href="/login">Login</a></li>
+                  {% else %}
+                  <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                  {% endif %}
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="#">@PythonFlask</a></li>
                 </ul>
