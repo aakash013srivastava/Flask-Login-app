@@ -22,17 +22,13 @@ class Demo(db.Model):
 def hello_world():
     allRegistered = Demo.query.all()
     print(allRegistered)
-    #return render_template("index.html",allRegistered = allRegistered)
+    
     if request.method == "POST":
         
-        # sno = len(allRegistered)+1
+    
         email = request.form['Email1']
         pwd = request.form['password']
 
-        # for x in allRegistered:
-        #     if email == x.email:
-        #         return render_template("index.html",allRegistered = allRegistered,msg="Email already exists")
-        #     else:
         try:
             demo = Demo(email = email,password=pwd)
             db.session.add(demo)
@@ -47,32 +43,31 @@ def hello_world():
     else:
         return render_template("index.html",allRegistered = allRegistered)
     
-    # "<p>Welcome Page !</p>"
+    
 
 @app.route("/login",methods=['GET','POST'])
 def login():
     allRegistered = Demo.query.all()
-    print(allRegistered)
+    print(len(allRegistered))
     
     if request.method == "POST":
         email = request.form['Email1']
         pwd = request.form['password']
         match = None
         for x in allRegistered:
-            print((x.email))
-            print((x.password))
-            if x.email == email and x.password == pwd:
-                return render_template("index.html",allRegistered = allRegistered,loggedIn=True)
+            
+            print(x)
+            if x.email == email and x.password == pwd:     
                 match = "Done"
-
             else:
-                match = None
-            # return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+                pass   
 
-            if match == None:
-                return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+        if match == None:
+            return render_template("login.html",allRegistered = allRegistered,loggedIn=False,msg='Wrong email/password combination')
+        else:
+            return render_template("index.html",allRegistered = allRegistered,loggedIn=True)
     else:
-        return render_template("login.html",allRegistered = allRegistered,loggedIn=True)
+        return render_template("login.html",allRegistered = allRegistered,loggedIn=False)
 
 @app.route("/logout",methods=['GET'])
 def logout():
